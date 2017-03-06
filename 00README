@@ -1,0 +1,201 @@
+Fund Reporting Tutorial
+=======================
+
+This repository contains a 'teaching example' for ReportLab PLUS.
+It contains a Django project with some sample data and a
+landscape PDF report showing the techniques to create certain
+tables, charts and types of content in our framework.
+
+It is based very loosely on a portfolio report for a hedge fund.
+Funds are imaginary and all of the numbers are randomly
+generated. In the fund management world, it's common to produce
+reports every 3 to 6 months, usually in landscape form, which
+combine commentary, charts and tables.
+
+This is UNDER DEVELOPMENT - we hope to make it look a lot
+prettier, add more examples, and show more techniques. If you
+want to know how to do something, ask us and we might add it
+here.
+
+Features demonstrated include:
+- use of vector logos
+- some common table styles
+- how to embed a number of charts
+- custom chart processing
+
+We will assume throughout a moderate level of proficiency in
+Django and Python. The following discussion will focus primarily
+on the architecture and utilities specifically related to PDF
+and graphics generation.
+
+The project is based on an sqlite3 database. As long as you have
+the correct fundreports.db file, there should not be much to
+configure. Browse to the admin to see what data is available.
+The model is based on having multiple funds, each of which may
+have many active trades, which in turn have a number of
+characterisics (i.e. locale, rationale, asset class, profit &
+loss, etc...).
+
+Setting up
+==========
+You should have Django installed (1.3 or higher preferred) and 
+an installation of ReportLab PLUS - register on our site and 
+follow the instructions. We generally recommend using virtualenv.
+
+Our site has full instructions but if you haven't worked through
+them and want to check that all the dependencies are in place,
+start Python up (inside your virtual environment, if you are
+using one) and check these imports all work.
+
+Python 2.7.3 (default, Aug  1 2012, 05:14:39) 
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import django
+>>> django.VERSION
+(1, 4, 0, 'final', 0)
+>>> import reportlab
+>>> import _rl_accel
+>>> import _renderPM
+>>> import PIL._imaging
+>>> import pyRXPU
+>>> import rlextra
+>>> 
+
+To set up, cd into the 'project' directory and execute
+
+%   python manage.py syncdb
+
+This will create an SQLITE database file "project/fundreport.db".
+Sqlite is built into Python so no separate database engine is
+needed. It will also load in some records from a fixture, giving
+you 3 funds and a few numbers and facts to display. We have NOT
+attempted to create a realistic risk management database; we
+just want to have some facts in there to display in the report.
+
+The funds have ids of 1, 2 and 3.
+
+It will ask you to create a user, so you can log in to the admin.
+Please do so.
+
+To generate PDFs from the web:
+
+%   python manage.py runserver
+
+Then browse to
+
+http://localhost:8000/fundreports/
+
+and click on any link to generate the corresponding PDF.
+
+To generate PDFs from the command line, use
+
+%   python manage.py makepdf 1     (or 2, 3 etc)
+
+
+
+How it works
+============
+For those not familiar with Django, we have references to the key files
+below.  Django splits up larger projects into directories called 'apps',
+and all the action happens in the 'fundreport' app.
+
+A PDF is available for each fund in the database by calling a
+URL, or a management command.   
+
+# project/fundreport/urls.py
+
+This defines the URLs that are supported, and routes calls through
+to the view below.
+
+# project/fundreport/views.py
+
+This received the fund ID in the request and provides a function
+to handle it.  We route this through to our own create_fund_report()
+function.
+
+# project/fundreport/management/commands/fundreport.py
+
+This implements the command line call.  Again, it just calls
+our own create_fund_report()  function.  This is a good pattern
+as you may want to create documents on demand, in the background,
+in batches or one at a time etc, and it lets you easily write 
+tests that PDF generation is working.
+
+# project/fundreport/utils.py
+
+See commented code in that module.  This handles assembly
+of data, use of our own templating system (preppy), and then
+calls into the template below.
+
+# project/fundreport/rml/fundreport.prep
+
+This is our template used to create the Report Markup Language.
+It is written in preppy, out templating system.  See the note below.
+How the PDF looks is determined here.   We also include any
+static resources needed for PDF generation (logos, fonts, adverts etc)
+in the same directory.  These are NOT web visible resources; they
+are needed by our engine on the server.  It's generally best to keep
+them together.
+
+# project/fundreport/charts/*
+The PDF also uses a number of chart modules from our Diagra solution.
+These are Python classes in the directory above.  Our Diagra user guide
+on the web site explains how to start our visual chart editor to adjust
+chart sizes, colours etc; alternatively you can just edit the code.
+We are hoping to replace the GUI Drawing Editor with a web based editor
+in a future version.  The same charts can trivially be served as bitmaps
+for the web.   (TODO: include examples).
+
+
+At this stage, we can already see how a Django app can store the
+relevant data, and how we can request and assemble the content
+for a report.
+
+
+# project/fundreport/tests.py
+
+One nice thing about Django is the test framework.  We added a couple
+of tests to make sure the PDF output works.  You can execute these
+with...
+% python manage.py test fundreport
+
+It's always a good idea to create a fixture with enough data for your
+reports, including a few pathological examples (missing data, accents,
+naked '&' signs or whatever), and have a unit test to verify the whole
+data -> preppy -> RML loop is working.
+
+
+A note on preppy
+================
+
+ReportLab has had our own templating system, preppy, since late 2000.
+This looks confusingly like Django, using {{these}} kinds of brackets.
+
+You are free to use any system you want to generate the RML.  However,
+preppy has several major advantages:
+
+1. It simply embeds Python inside any other file.  You have full access
+to the language.  You can therefore implement any feature you need 
+(imports, macros etc).  We have not tried to invent a new language, because
+in our view we have one already (Python).
+
+2. It generates a bytecode-compiled Python module on first use or on edits
+(you'll see a fundreport.pyc) and is extremely efficient.
+
+3. Because it's Python, you get normal Python exceptions from any errors in
+your template.  You can follow tracebacks through Python to preppy and back.
+You even get the correct line numbers in your .prep file.  By contrast,
+Django and other web templating engines need totally separate tools for
+debugging and in some cases silently forgive things like badly-named
+variables.
+
+Report Markup Language is a strict XML DTD, and it's very important that
+any errors you make in generating it can be debugged.
+
+Next steps
+==========
+Hopefully Django developers can use this as a starting point for any project 
+to create PDFs.  And non-Django developers can still get it running easily,
+understand how to make the documents, and apply this in their own frameworks.
+
+Last updated 1st March 2013

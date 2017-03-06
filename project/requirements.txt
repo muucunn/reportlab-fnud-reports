@@ -1,0 +1,6 @@
+Django==1.5b2
+PIL==1.1.7
+distribute==0.6.31
+reportlab==2.6
+rlextra==2.6
+wsgiref==0.1.2

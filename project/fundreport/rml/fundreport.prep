@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?> 
+<!DOCTYPE document SYSTEM "rml.dtd"> 
+<document filename="fund_report.pdf" > 
+
+{{script}}
+from fundreport.rml_utils import *
+
+barChartPadding=42
+{{endscript}}
+
+<!-- 
+==========
+docinit section is for registering fonts and colors 
+==========
+-->
+
+<docinit>
+
+<!--
+==========
+
+Register your own fonts here using this syntax:
+TODO registerFontFamily.
+
+    <registerTTFont faceName="" fileName=""/>
+
+===========
+-->
+
+    <color id="RL_BLUE" CMYK="[0.97, 0.81, 0.04, 0]"/>
+    <color id="BLACK_TEXT" CMYK="[0, 0.1, 0.14, 0.85]"/>
+    <color id="GRAY_TEXT" CMYK="[0, 0, 0, 0.65]"/>
+</docinit>
+
+<template pageSize="(842, 595)" leftMargin="72" showBoundary="0">
+
+    <pageTemplate id="cover">
+        <pageGraphics>
+            <image file="{{RML_DIR}}/logo.png" x="520" y="500" width="250" preserveAspectRatio="1"/>
+
+            <setFontSize size="24"/>
+            <fill color="BLACK_TEXT"/>
+            <drawString x="72" y="420">ReportLab Investment Management</drawString>           
+
+            <setFontSize size="18"/>
+            <fill color="GRAY_TEXT"/>
+            <drawString x="72" y="395">Fund factsheet: {{fund.name}}</drawString>   
+
+            <fill color="RL_BLUE"/>
+            <rect x="0" y="385" height="3" width="842" stroke="0" fill="1"/>
+
+        </pageGraphics>
+        <frame id="1" x1="72" y1="72" width="200" height="200"/>
+    </pageTemplate>
+
+
+    <pageTemplate id="body">
+        <pageGraphics>
+            <image file="{{RML_DIR}}/logo_gray.png" x="657" y="520" width="150" preserveAspectRatio="1"/>
+            <fill color="RL_BLUE"/>
+            <rect x="0" y="520" height="3" width="842" stroke="0" fill="1"/>
+
+            <fill color="GRAY_TEXT"/>
+            <drawCenteredString x="421" y="35"><pageNumber/></drawCenteredString>
+            <drawString x="35" y="35">ReportLab Investment Management</drawString>
+            <drawRightString x="807" y="35">Private and Confidential</drawRightString>
+
+            <!--
+            ==========
+            The <place> tag below will let you set new templates
+            and pass in a Title attribute, see the story below.
+            #AR expand
+            ==========
+            -->
+
+            <place x="35" y="528" width="500" height="30"><para style="h1"><getName id="Title" default=""/></para></place>
+        </pageGraphics>
+                <frame id="body" x1="35" y1="72" width="772" height="428"/>
+    </pageTemplate>
+
+    <pageTemplate id="blank">
+        <frame id="1" x1="0" y1="0" width="842" height="595" />
+    </pageTemplate>
+
+</template>
+
+<!--
+==========
+
+The style sheet contains paragraph and table styles
+
+==========
+-->
+
+<stylesheet>
+
+    <paraStyle name="h1"
+        fontSize="20"
+        textColor="RL_BLUE"
+        leading="17"
+        spaceBefore = "27"
+        spaceAfter = "13"
+        />
+
+    <paraStyle name="body"
+        fontName="Helvetica"
+        fontSize="8.4"
+        textColor="BLACK_TEXT"
+        leading="12"
+        spaceBefore = "8"
+        alignment="JUSTIFY"
+        />
+
+    <blockTableStyle id="basic">
+        <blockAlignment value="center"/>
+        <blockFont name="Helvetica" size="8.4" start="0,0" stop="-1,-1"/>
+        <blockValign value="middle" />
+        <lineStyle kind="LINEABOVE" colorName="black" start="0,0" stop="-1,0"/>
+        <lineStyle kind="LINEBELOW" colorName="black" start="0,-1" stop="-1,-1"/>
+        <blockBackground colorName="black" start="0,0" stop="-1,0"/>
+        <blockTextColor colorName="white" start="0,0" stop="-1,0"/>
+        <blockBackground colorsByRow="None;#DCE6F2" start="0,1" stop="-1,-1"/>
+    </blockTableStyle>
+
+    <blockTableStyle id="container">
+        <blockAlignment value="center"/>
+        <blockValign value="top" />
+        <blockLeftPadding length="0" />
+        <blockRightPadding length="0" />
+        <blockBottomPadding length="0" />
+        <blockTopPadding length="0" />
+        <blockTopPadding length="{{barChartPadding}}" start="0,0" stop="0,0"/>
+    </blockTableStyle>
+
+    <blockTableStyle id="small_text" parent="basic">
+        <blockFont name="Helvetica" size="7" start="0,0" stop="-1,-1"/>
+    </blockTableStyle>
+</stylesheet>
+
+<!-- 
+==========
+
+The story contains all flowable content
+
+==========
+-->
+
+<story>
+<setNextTemplate name="body"/><name id="Title" value="Market performance"/>
+<nextPage/>
+<blockTable style="basic" colWidths="122,45,45,45,45,45,45,45,45,45,45,45,45,45,65">
+    <tr>
+        <td></td>
+        <td>Jan</td>
+        <td>Feb</td>
+        <td>Mar</td>
+        <td>Apr</td>
+        <td>May</td>
+        <td>Jun</td>
+        <td>Jul</td>
+        <td>Aug</td>
+        <td>Sep</td>
+        <td>Oct</td>
+        <td>Nov</td>
+        <td>Dec</td>
+        <td>YTD</td>
+        <td></td>
+    </tr>
+
+<!--
+==========
+
+Dummy data entered for returns in the following table row,
+using the function negRedTd from rml_utils. This function
+accepts a number and an optional format parameter. If set to
+'percent', it will display percentages to 2 decimal places, 
+otherwise, it will show whole numbers with a ',' for the 
+thousands separator.
+
+AR - give example of what it creates, makes explanation clearer...
+
+Negative numbers are given a different colour; red by default,
+but any colour may be given as an argument.
+
+==========
+-->
+
+    <tr>
+        <td>{{fund.name}}</td>
+        {{negRedTd(7.61, format='percent')}}
+        {{negRedTd(5.62, format='percent')}}
+        {{negRedTd(2.31, format='percent')}}
+        {{negRedTd(-6.62, format='percent')}}
+        {{negRedTd(-1.38, format='percent')}}
+        {{negRedTd(-6.47, format='percent')}}
+        {{negRedTd(4.62, format='percent')}}
+        {{negRedTd(0.91, format='percent')}}
+        {{negRedTd(5.75, format='percent')}}
+        {{negRedTd(-1.12, format='percent')}}
+        {{negRedTd(-7.62, format='percent')}}
+        {{negRedTd(3.42, format='percent')}}
+        {{negRedTd(15.41, format='percent')}}
+    </tr>
+</blockTable>
+
+<!--
+==========
+
+Below is an instance of a dynamically drawn chart. The <drawing>
+tag is used to import a particular chart (function) from a
+python module (module) as created with the drawing editor. See
+notes in 00README for more on the drawing editor.
+
+AR:  explain drawing editor.
+
+Any parameters of this chart may be dynamically controlled at
+the time of PDF generation; in this case, we are replacing the
+data attribute with our own line chart data, assembled
+previously and passed to this template.
+
+==========
+-->
+
+    <drawing module="fundreport.charts.monthperf12mo" function="perfChart">
+        <!--pass in dynamic data as a python list expression with preppy -->
+        <param name="chart.data">{{line_chart_data}}</param>
+    </drawing>
+
+<name id="Title" value="Market performance"/>
+    <nextPage/>
+    <para style="body" spaceAfter="10">{{fund.market_summary}}</para>
+
+<!--
+==========
+
+Below we arrange a table next to a chart. We use the technique
+of having a container table with no padding and one row, with
+the table placed in the left cell and the chart in the right
+cell.
+
+The <keepInFrame> tag ensures that if the contents become to
+long to fit on the page, they will be shrunk to fit. This
+approach works well when overflows are small, but if the content
+is very long, the display may become illegible upon shrinking.
+
+Note the script below which controls many aspects of the layout
+of the table and ensures that the table and chart line up
+exactly.
+
+==========
+-->
+
+{{script}}
+portfolioBarData=[[] for i in xrange(3)]
+portfolioTotals = 5*[0]
+rowHeight = 12
+n = len(live_themes)
+
+drawingHeight = rowHeight*(n+1)+barChartPadding
+chartHeight = rowHeight*n
+{{endscript}}
+
+<keepInFrame frame="body" onOverflow="shrink">
+<blockTable align="LEFT" vAlign="top" colWidths="479, 293" style="container">
+    <tr>
+        <td>
+            <blockTable align="LEFT" style="small_text" rowHeights="{{','.join((n+2)*[str(rowHeight)])}}" colWidths="117,40,40,40,40,40,40,40,40,40">
+                <tr>
+                    <td>Trade</td>
+                    <td>Region</td>
+                    <td>Country</td>
+                    <td>Trade Date</td>
+                    <td>Asset Class</td>
+                    <td>Profit</td>
+                    <td>Limit</td>
+                    <td>Stop loss</td>
+                    <td>Value at risk</td>
+                    <td>cVaR</td>
+                </tr>
+                {{for t in live_themes}}
+                <tr>
+                    {{script}}
+                    portfolioBarData[0].append(t.position.LTD)
+                    portfolioBarData[1].append(t.target_PL)
+                    portfolioBarData[2].append(t.position.SL)
+                    {{endscript}}
+                    <td>{{t.name}}</td>
+                    <td>{{t.region}}</td>
+                    <td>{{t.country}}</td>
+                    <td>{{t.live_rationale.date}}</td>
+                    <td>{{t.asset_class}}</td>
+                    {{script}}
+                    tds=[].append
+                    for i,v in enumerate((t.position.LTD,t.target_PL,t.position.SL,t.position.var,t.position.cvar)):
+                        portfolioTotals[i] += v
+                        tds(negRedTd(v))
+                    {{endscript}}{{''.join(tds.__self__)}}
+                </tr>
+                {{endfor}}
+                <tr>
+                    <td>Total</td>
+                    {{4*'<td/>'}}{{''.join([negRedTd(v) for v in portfolioTotals])}}
+                </tr>
+            </blockTable>
+        </td>
+
+        <td>
+            <drawing module="fundreport.charts.PortfolioBar" function="PortfolioBar">
+                <param name="height">{{drawingHeight}}</param>
+                <param name="chart.height">{{chartHeight}}</param>
+                <param name="chart.data">{{portfolioBarData}}</param>
+                <param name="chart.categoryAxis.reverseDirection">1</param>
+            </drawing>
+        </td>
+    </tr>
+</blockTable>
+</keepInFrame>
+
+<name id="Title" value="Live Trades"/>
+<nextPage/>
+<blockTable style="basic" colWidths="125,30,450,55">
+    <tr>
+        <td>Theme</td>
+        <td>Action</td>
+        <td>Rationale</td>
+        <td>Date</td>
+    </tr>
+    {{for t in live_themes}}
+    <tr>
+        <td >{{t.name}}</td>
+        <td >{{t.live_rationale.action}}</td>
+        <td><para style="body">{{t.live_rationale.rationale}}</para></td>
+        <td>{{t.live_rationale.date}}</td>
+    </tr>
+    {{endfor}}
+</blockTable>
+
+<name id="Title" value="Profit and loss by asset class and region"/>
+<nextPage/>
+<blockTable style="basic" colWidths="16.66%,16.66%,16.66%,16.66%,16.66%,16.66%">
+    <tr>
+        <td></td>
+
+        {{for ac in attribution.get('lookup')[1]}}
+        <td>{{ac}}</td>
+        {{endfor}}
+
+        <td>Total</td>
+    </tr>
+
+    {{for r in attribution.get('lookup')[0]}}
+    <tr>
+        <td>{{r}}</td>
+
+        {{for ac in attribution.get('lookup')[1]}}
+            {{negRedTd(attribution.get(r).get(ac), format='percent')}}
+        {{endfor}}
+
+        {{negRedTd(attribution.get(r).get('total'), format='percent')}}
+
+    </tr>
+    {{endfor}}
+
+    <tr>
+        <td>Total</td>
+
+        {{for ac in attribution.get('lookup')[1]}}
+            {{negRedTd(attribution.get(ac), format='percent')}}
+        {{endfor}}
+
+        {{negRedTd(attribution.get(ac)+attribution.get(r).get('total'), format='percent')}}
+    </tr>
+</blockTable>
+
+<name id="Title" value="This month's returns by trade"/>
+<nextPage/>
+<para style="body">Code snippet shown below for embedding the chart:</para>
+<codesnippet>
+{{rml(
+'''
+&#60;drawing module="fundreport.charts.vchart" function="vchart"&#62;
+    &#160;&#160;&#160;&#160;&#60;param name="chart.data">[&#123;&#123;attribution.get('data')[1]&#125;&#125;]&#60;/param&#62;
+    &#160;&#160;&#160;&#160;&#60;param name="chart.categoryAxis.categoryNames">&#123;&#123;attribution.get('data')[0]&#125;&#125;&#60;/param&#62;
+&#60;/drawing&#62;
+'''
+)}}
+</codesnippet>
+
+<drawing module="fundreport.charts.vchart" function="vchart">
+    <param name="title._text">Returns this month on active trades</param>
+    <param name="yAxistitle._text">As % of AUM</param>
+    <param name="chart.data">[{{attribution.get('data')[1]}}]</param>
+    <param name="chart.categoryAxis.categoryNames">{{attribution.get('data')[0]}}</param>
+</drawing>
+
+<!--
+==========
+
+What follows demonstrates how to pull in pre-existing static
+pages. We set a blank template and then use the
+<includePdfPages> tag to pull in an existing PDF. The
+leadingFrame attribute is necessary to prevent a blank page
+appearing; if you omit this, you want to omit the preceding 
+<nextPage/> as well.
+
+==========
+-->
+
+<setNextTemplate name="blank"/>
+<nextPage/>
+<includePdfPages filename="{{RML_DIR}}/advert.pdf" leadingFrame="no"/>
+
+</story>
+</document>
